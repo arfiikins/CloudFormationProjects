@@ -1,0 +1,100 @@
+#Below is an CloudFormation Code to deploy the following:
+# - VPC with one subnet which maps public IP addresses to the EC2 instances launched inside it
+# - Route table associated to VPC. Add routes for internet access (0.0.0.0/0)
+# - An Internet Gateway attached to the VPC
+# - Define an EC2 instance in public subnet
+# - Defines a Security Group with ingress rule allowing ICMP requests which is also attached to the EC2 instance
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Section 2 Activity
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: VPCGeneratedFromCFAct
+
+  mySubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.20.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+       Ref: myVPC
+
+  myRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: myVPC
+
+  mySubentRouteTableAssociation:   
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: 
+        Ref: myRouteTable
+      SubnetId: 
+        Ref: mySubnet
+
+  myInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: IGWTest
+          Value: IGWTesting
+
+  myVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: 
+        Ref: myInternetGateway
+      VpcId: 
+        Ref: myVPC
+
+  myRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId:
+        Ref: myRouteTable
+      GatewayId:
+        Ref: myInternetGateway
+
+  myWebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: <<add-your-ami-id-here>>
+      InstanceType: t2.micro
+      KeyName: <<add-your-keypair-name-here>>
+      SecurityGroupIds:
+        - !Ref myWebServerSecurityGroup
+      SubnetId: 
+        Ref: mySubnet
+      Tags:
+        - Key: Name
+          Value: EC2GeneratedFromCFAct
+        - Key: Shift
+          Value: ANZ-Shift
+
+  myWebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SGGeneratedFromCFAct
+      VpcId:
+        Ref: myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp                  #Allow an SSH access just to check if server is up and running and can connect to internet
+          FromPort: 22
+          ToPort: 22
+          CidrIp: <<your-IP-address> 
+        - IpProtocol: icmp
+          FromPort: All
+          ToPort: All
+          CidrIp: <<your-IP-address>
+
+
+    
