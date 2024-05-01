@@ -77,8 +77,6 @@ Resources:
       Tags:
         - Key: Name
           Value: EC2GeneratedFromCFAct
-        - Key: Shift
-          Value: ANZ-Shift
 
   myWebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
