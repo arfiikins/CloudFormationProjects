@@ -5,19 +5,23 @@ AWS-Specific parameter) with rules/constraints such as AllowedPatterns (regex), 
 We will also use the Function Select function to help get the value from an array/list and Function Sub for defining
 tags.
 
-Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for better visualization. 
+Edited: 
+    Added the Metadata: 
+        - Grouping, Ordering, and Labeling parameters for better visualization. AWS::CloudFormation::Interface (ParameterGroups and ParameterLabels) 
+    Added Mappings:
+        - Map the value without having to select or input the real value. Uses Fn::FindInMap to find the mapped value.
 */}
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "A sample database stack for the AWS CloudFormation step by step course series",
-    "AWS::CloudFormation::Interface": {
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
             "ParameterGroups": [
                 {
                     "Label": {
                         "default": "Database Instance Settings"
                     },
                     "Parameters": [
-                        "DbClass",
                         "MultiAZ",
                         "AllocatedStorage",
                         "MasterUsername",
@@ -33,14 +37,15 @@ Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for bett
                         "DbSubnets",
                         "SecurityGroupPorts"
                     ]
+                },
+                {
+                    "Label": {
+                        "default": "Other parameters"
+                    },
+                    "Parameters": []
                 }
             ],
             "ParameterLabels": [
-                {
-                    "DbClass": {
-                        "default": "Database Instance Class"
-                    }
-                },
                 {
                     "AllocatedStorage": {
                         "default": "Allocated Storage Size"
@@ -50,15 +55,6 @@ Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for bett
         }
     },
     "Parameters": {
-        "DbClass": {
-            "Type": "String",
-            "Description": "The RDS DB instance class",
-            "AllowedValues": [
-                "db.t4g.micro",
-                "db.t3.micro"
-            ],
-            "Default": "db.t4g.micro"
-        },
         "MasterUsername": {
             "Type": "String",
             "Description": "The master username for the DB instance",
@@ -80,6 +76,7 @@ Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for bett
                 "true",
                 "false"
             ],
+            "ConstraintDescription": "MultiAZ parameter should be either true or false.",
             "Default": "false"
         },
         "AllocatedStorage": {
@@ -102,6 +99,23 @@ Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for bett
         "VpcId": {
             "Type": "AWS::EC2::VPC::Id",
             "Description": "A valid VPC id in your AWS account"
+        },
+        "EnvironmentName": {
+            "Type": "String",
+            "AllowedValues": [
+                "Production", "Test"
+            ],
+            "Default": "Test"
+        }
+    },
+    "Mappings": {
+        "EnvironmentOptions": {
+            "Production": {
+                "DbClass": "db.t4g.small"
+            },
+            "Test": {
+                "DbClass": "db.t4g.micro"
+            }
         }
     },
     "Resources": {
@@ -208,7 +222,7 @@ Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for bett
                 },
                 "BackupRetentionPeriod": "0",
                 "DBInstanceClass": {
-                    "Ref": "DbClass"
+                    "Fn::FindInMap": [ "EnvironmentOptions", {"Ref": "EnvironmentName"}, "DbClass" ]
                 },
                 "Engine": "mariadb",
                 "MasterUsername": {
