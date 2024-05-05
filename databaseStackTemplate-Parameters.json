@@ -1,13 +1,54 @@
-/*
+{/*
 Below is the CloudFormation stack in creating a DB instance, bastion host, and security groups. Will be deployed
 on a specific VPC. Defining the resources using Parameters (such as String, Number, CommaDelimitedList, and 
 AWS-Specific parameter) with rules/constraints such as AllowedPatterns (regex), AllowedValues, Hidden value, and constraints. 
 We will also use the Function Select function to help get the value from an array/list and Function Sub for defining
 tags.
-*/
+
+Edited: Added the Metadata: Grouping, Ordering, and Labeling parameters for better visualization. 
+*/}
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "A sample database stack for the AWS CloudFormation step by step course series",
+    "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Database Instance Settings"
+                    },
+                    "Parameters": [
+                        "DbClass",
+                        "MultiAZ",
+                        "AllocatedStorage",
+                        "MasterUsername",
+                        "MasterUserPassword"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Network Settings"
+                    },
+                    "Parameters": [
+                        "VpcId",
+                        "DbSubnets",
+                        "SecurityGroupPorts"
+                    ]
+                }
+            ],
+            "ParameterLabels": [
+                {
+                    "DbClass": {
+                        "default": "Database Instance Class"
+                    }
+                },
+                {
+                    "AllocatedStorage": {
+                        "default": "Allocated Storage Size"
+                    }
+                }
+            ]
+        }
+    },
     "Parameters": {
         "DbClass": {
             "Type": "String",
